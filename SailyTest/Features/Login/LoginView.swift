@@ -55,17 +55,26 @@ private extension LoginView {
         }
     }
 
+    var rectangle: some View {
+        RoundedRectangle(cornerRadius: 10)
+            .frame(height: 40)
+            .foregroundColor(.fieldBackground).opacity(0.12)
+    }
+
+    func textfieldImage(isSecure: Bool) -> some View {
+        let name = isSecure ? "lockIcon" : "usernameIcon"
+        return Image(name)
+            .resizable()
+            .frame(width: 16, height: 16, alignment: .center)
+            .padding(.leading, 8)
+    }
+
     func textfields() -> some View {
         VStack(spacing: 16) {
-            RoundedRectangle(cornerRadius: 10)
-                .frame(height: 40)
-                .foregroundColor(.fieldBackground).opacity(0.12)
+            rectangle
                 .overlay(
                     HStack(spacing: 9) {
-                        Image("usernameIcon")
-                            .resizable()
-                            .frame(width: 16, height: 16, alignment: .center)
-                            .padding(.leading, 8)
+                        textfieldImage(isSecure: false)
 
                         TextField("Username ", text: $store.state.username)
                             .font(.system(size: 17, weight: .regular))
@@ -73,15 +82,10 @@ private extension LoginView {
                     }
                 )
 
-            RoundedRectangle(cornerRadius: 10)
-                .frame(height: 40)
-                .foregroundColor(.fieldBackground).opacity(0.12)
+            rectangle
                 .overlay(
                     HStack(spacing: 9) {
-                        Image("lockIcon")
-                            .resizable()
-                            .frame(width: 16, height: 16, alignment: .center)
-                            .padding(.leading, 8)
+                        textfieldImage(isSecure: false)
 
                         SecureField("Password", text: $store.state.password)
                             .font(.system(size: 17, weight: .regular))
