@@ -6,24 +6,25 @@
 //
 
 import Foundation
-
-enum Key: String { case username, password, token }
-
-struct KeychainError: Error {
-    let status: OSStatus
-    let context: String
-
-    var localizedDescription: String {
-        let statusString = SecCopyErrorMessageString(status, nil) ?? "Unknown error" as CFString
-        return "Keychain error in \(context): \(statusString) (status: \(status))"
-    }
-}
+import ComposableArchitecture
 
 private func throwIfError(_ status: OSStatus, _ ctx: String = "") throws {
-    guard status == errSecSuccess else { throw KeychainError(status: status, context: ctx) }
+    guard status == errSecSuccess else { throw KeychainWrapper.KeychainError(status: status, context: ctx) }
 }
 
 final class KeychainWrapper {
+    enum Key: String { case username, password, token }
+
+    struct KeychainError: Error {
+        let status: OSStatus
+        let context: String
+
+        var localizedDescription: String {
+            let statusString = SecCopyErrorMessageString(status, nil) ?? "Unknown error" as CFString
+            return "Keychain error in \(context): \(statusString) (status: \(status))"
+        }
+    }
+
     private let service: String
     private let accessibility = kSecAttrAccessibleWhenUnlocked
 
@@ -31,16 +32,16 @@ final class KeychainWrapper {
         self.service = service
     }
 
-    func set(_ value: String, for key: Key) throws {
+    func set(_ value: String, for key: KeychainWrapper.Key) throws {
         try set(Data(value.utf8), for: key)
     }
 
-    func get(_ key: Key) throws -> String? {
+    func get(_ key: KeychainWrapper.Key) throws -> String? {
         guard let data = try getData(key) else { return nil }
         return String(data: data, encoding: .utf8)
     }
 
-    func delete(_ key: Key) throws {
+    func delete(_ key: KeychainWrapper.Key) throws {
         let q: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -51,7 +52,7 @@ final class KeychainWrapper {
     }
 
     // MARK: - Data helpers
-    func set(_ data: Data, for key: Key) throws {
+    func set(_ data: Data, for key: KeychainWrapper.Key) throws {
         let base: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -70,7 +71,7 @@ final class KeychainWrapper {
         }
     }
 
-    func getData(_ key: Key) throws -> Data? {
+    func getData(_ key: KeychainWrapper.Key) throws -> Data? {
         let q: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
