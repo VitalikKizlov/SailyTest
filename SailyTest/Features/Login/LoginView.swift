@@ -69,6 +69,7 @@ struct LoginView: View {
         .onTapGesture {
             store.send(.didTapOutsideTextfield)
         }
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 }
 
@@ -131,12 +132,19 @@ private extension LoginView {
         Button {
             store.send(.didTapLoginButton)
         } label: {
-            Text("Log in")
-                .foregroundColor(.white)
+            HStack {
+                if store.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(0.8)
+                }
+                Text(store.isLoading ? "Logging in..." : "Log in")
+                    .foregroundColor(.white)
+            }
         }
-        .disabled(!store.isFormValid)
+        .disabled(!store.isFormValid || store.isLoading)
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 40)
-        .background(store.isFormValid ? Color.mainBlue : Color.mainBlue.opacity(0.4))
+        .background((store.isFormValid && !store.isLoading) ? Color.mainBlue : Color.mainBlue.opacity(0.4))
         .cornerRadius(10)
     }
 }
