@@ -12,6 +12,7 @@ import ComposableArchitecture
 struct LoginView: View {
 
     @Bindable var store: StoreOf<Login>
+    @FocusState var focus: Login.Field?
 
     var body: some View {
         ZStack {
@@ -77,6 +78,7 @@ private extension LoginView {
                         textfieldImage(isSecure: false)
 
                         TextField("Username ", text: $store.state.username)
+                            .focused($focus, equals: .username)
                             .font(.system(size: 17, weight: .regular))
                             .autocapitalization(.none)
                     }
@@ -88,6 +90,7 @@ private extension LoginView {
                         textfieldImage(isSecure: false)
 
                         SecureField("Password", text: $store.state.password)
+                            .focused($focus, equals: .password)
                             .font(.system(size: 17, weight: .regular))
                     }
                 )
