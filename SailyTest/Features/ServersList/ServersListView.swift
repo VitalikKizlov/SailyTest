@@ -18,6 +18,8 @@ struct ServersListView: View {
             VStack(spacing: 0) {
                 header()
 
+                // TODO: - add zstack with animation
+                // add separate loading view with image background and spinner
                 if store.loadingState == .loading {
                     loadingView()
                 } else {
@@ -63,15 +65,16 @@ private extension ServersListView {
     func header() -> some View {
         HStack {
             Text("SERVER")
-                .font(.system(size: 13, weight: .regular))
+                .font(.system(size: 12, weight: .regular))
                 .foregroundColor(.headerTitle)
             Spacer()
             Text("DISTANCE")
-                .font(.system(size: 13, weight: .regular))
+                .font(.system(size: 12, weight: .regular))
                 .foregroundColor(.headerTitle)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.top, 24)
+        .padding(.bottom, 8)
         .background(Color.headerBackground)
     }
 
@@ -89,6 +92,7 @@ private extension ServersListView {
                 }
             }
         }
+        .scrollIndicators(.hidden)
     }
 
     func separator() -> some View {
@@ -98,14 +102,11 @@ private extension ServersListView {
     }
 
     func loadingView() -> some View {
-        VStack {
-            Spacer()
+        VStack(spacing: 6) {
             ProgressView()
-            Text("Loading servers...")
+            Text("Loading list")
                 .font(.system(size: 16, weight: .regular))
                 .foregroundColor(.headerTitle)
-                .padding(.top, 16)
-            Spacer()
         }
     }
 }
