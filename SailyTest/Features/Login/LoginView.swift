@@ -143,7 +143,7 @@ private extension LoginView {
             }
         }
         .disabled(!store.isFormValid || store.isLoading)
-        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 40)
+        .frame(maxWidth: .infinity, minHeight: 40)
         .background((store.isFormValid && !store.isLoading) ? Color.mainBlue : Color.mainBlue.opacity(0.4))
         .cornerRadius(10)
     }
