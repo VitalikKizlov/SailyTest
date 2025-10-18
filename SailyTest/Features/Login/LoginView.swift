@@ -21,6 +21,7 @@ extension Login.State {
     var usernameImage: some View {
         Image("usernameIcon")
             .resizable()
+            .renderingMode(.template)
             .frame(width: 16, height: 16, alignment: .center)
             .padding(.leading, 8)
             .foregroundColor(usernameImageColor)
@@ -29,6 +30,7 @@ extension Login.State {
     var passwordImage: some View {
         Image("lockIcon")
             .resizable()
+            .renderingMode(.template)
             .frame(width: 16, height: 16, alignment: .center)
             .padding(.leading, 8)
             .foregroundColor(passwordImageColor)
