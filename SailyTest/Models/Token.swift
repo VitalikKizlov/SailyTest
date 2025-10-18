@@ -7,6 +7,10 @@
 
 import Foundation
 
-struct Token: Codable {
+struct Token: Codable, Equatable {
     let token: String
+}
+
+extension Token {
+    static let mock = Token(token: "111111111111")
 }

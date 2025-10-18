@@ -35,6 +35,10 @@ extension Login.State {
             .padding(.leading, 8)
             .foregroundColor(passwordImageColor)
     }
+
+    var isFormValid: Bool {
+        username.count > 0 && password.count > 0
+    }
 }
 
 struct LoginView: View {
@@ -124,9 +128,16 @@ private extension LoginView {
     }
 
     func loginButton() -> some View {
-        VStack {
-
+        Button {
+            store.send(.didTapLoginButton)
+        } label: {
+            Text("Log in")
+                .foregroundColor(.white)
         }
+        .disabled(!store.isFormValid)
+        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 40)
+        .background(store.isFormValid ? Color.mainBlue : Color.mainBlue.opacity(0.4))
+        .cornerRadius(10)
     }
 }
 
