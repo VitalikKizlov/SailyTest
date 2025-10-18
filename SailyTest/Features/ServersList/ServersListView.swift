@@ -33,6 +33,12 @@ struct ServersListView: View {
             .onAppear {
                 store.send(.onAppear)
             }
+            .confirmationDialog(
+                $store.scope(
+                    state: \.confirmationDialog,
+                    action: \.confirmationDialog
+                )
+            )
         }
     }
 }

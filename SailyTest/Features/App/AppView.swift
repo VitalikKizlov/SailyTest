@@ -24,5 +24,6 @@ struct AppView: View {
                     .transition(.opacity)
             }
         }
+        .animation(.easeInOut, value: store.contentMode)
     }
 }

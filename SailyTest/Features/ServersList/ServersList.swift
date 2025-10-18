@@ -15,11 +15,18 @@ struct ServersList {
         case loading
         case loaded
     }
+    
+    enum SortOption: Equatable {
+        case distance
+        case alphabetical
+    }
 
     @ObservableState
     struct State: Equatable {
         var loadingState: LoadingState = .idle
         var servers: IdentifiedArrayOf<Server> = []
+
+        @Presents var confirmationDialog: ConfirmationDialogState<Action.ConfirmationDialog>?
     }
 
     enum Action: Equatable {
@@ -30,6 +37,14 @@ struct ServersList {
         case fetchServers
         case serversFetched([Server])
         case fetchFailed
+
+        case confirmationDialog(PresentationAction<ConfirmationDialog>)
+
+        enum ConfirmationDialog: Equatable {
+            case dismiss
+            case sortByDistance
+            case sortAlphabetically
+        }
     }
 
     @Dependency(\.serverProvider) private var serversProvider
@@ -41,6 +56,16 @@ struct ServersList {
                 return .send(.fetchServers)
 
             case .didTapFilterButton:
+                state.confirmationDialog = ConfirmationDialogState {
+                    TextState("Sort by")
+                } actions: {
+                    ButtonState(action: .sortByDistance) {
+                        TextState("Distance")
+                    }
+                    ButtonState(action: .sortAlphabetically) {
+                        TextState("Alphabetically")
+                    }
+                }
                 return .none
 
             case .didTapLogoutButton:
@@ -63,8 +88,24 @@ struct ServersList {
             case .setLoadingState(let loadingState):
                 state.loadingState = loadingState
                 return .none
+
+            // MARK: - ConfirmationDialog actions
+            case .confirmationDialog(.presented(let presentedAction)):
+                switch presentedAction {
+                case .dismiss:
+                    return .none
+                case .sortByDistance:
+                    state.servers = sortServers(state.servers, by: .distance)
+                    return .none
+                case .sortAlphabetically:
+                    state.servers = sortServers(state.servers, by: .alphabetical)
+                    return .none
+                }
+            case .confirmationDialog(.dismiss):
+                return .none
             }
         }
+        .ifLet(\.$confirmationDialog, action: \.confirmationDialog)
         ._printChanges()
     }
 }
@@ -78,6 +119,15 @@ private extension ServersList {
             } catch {
                 await send(.fetchFailed)
             }
+        }
+    }
+    
+    func sortServers(_ servers: IdentifiedArrayOf<Server>, by option: SortOption) -> IdentifiedArrayOf<Server> {
+        switch option {
+        case .distance:
+            return IdentifiedArrayOf(uniqueElements: servers.sorted { $0.distance < $1.distance })
+        case .alphabetical:
+            return IdentifiedArrayOf(uniqueElements: servers.sorted { $0.name < $1.name })
         }
     }
 }
