@@ -19,11 +19,13 @@ struct ServersList {
     @ObservableState
     struct State: Equatable {
         var loadingState: LoadingState = .idle
-        var servers: [Server] = []
+        var servers: IdentifiedArrayOf<Server> = []
     }
 
     enum Action: Equatable {
         case onAppear
+        case didTapFilterButton
+        case didTapLogoutButton
         case setLoadingState(LoadingState)
         case fetchServers
         case serversFetched([Server])
@@ -37,7 +39,13 @@ struct ServersList {
             switch action {
             case .onAppear:
                 return .send(.fetchServers)
-                
+
+            case .didTapFilterButton:
+                return .none
+
+            case .didTapLogoutButton:
+                return .none
+
             case .fetchServers:
                 return .concatenate(
                     .send(.setLoadingState(.loading)),
@@ -46,7 +54,7 @@ struct ServersList {
                 )
 
             case .serversFetched(let servers):
-                state.servers = servers
+                state.servers = IdentifiedArrayOf(uniqueElements: servers)
                 return .none
                 
             case .fetchFailed:
