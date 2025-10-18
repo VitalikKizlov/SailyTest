@@ -7,7 +7,9 @@
 
 import Foundation
 
-struct Server: Codable {
+struct Server: Codable, Hashable, Identifiable {
+    var id: String { name }
+
     let name: String
     let distance: Int
 }
