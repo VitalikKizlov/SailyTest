@@ -60,10 +60,10 @@ struct ServersList {
                     TextState("Sort by")
                 } actions: {
                     ButtonState(action: .sortByDistance) {
-                        TextState("Distance")
+                        TextState("By distance")
                     }
                     ButtonState(action: .sortAlphabetically) {
-                        TextState("Alphabetically")
+                        TextState("Alphabetical")
                     }
                 }
                 return .none
