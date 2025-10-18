@@ -159,3 +159,17 @@ private extension LoginView {
         )
     )
 }
+
+#Preview("Failed login") {
+    LoginView(
+        store: .init(
+            initialState: Login.State(),
+            reducer: {
+                Login()
+            }, withDependencies: {
+                $0.tokenProvider = .failing
+            }
+        )
+    )
+}
+

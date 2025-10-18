@@ -33,6 +33,10 @@ extension TokenProvider {
         try await mainQueue.sleep(for: .seconds(.random(in: 0.1...0.8)))
         return .mock
     }
+    
+    static let failing = TokenProvider { _ in
+        throw URLError(.userAuthenticationRequired)
+    }
 }
 
 extension DependencyValues {

@@ -143,17 +143,13 @@ final class LoginTests: XCTestCase {
         }
     }
     
-    func testFailedLogin() async {
-        let failingTokenProvider = TokenProvider { _ in
-            throw URLError(.userAuthenticationRequired)
-        }
-        
+    func testFailedLogin() async {        
         let store = makeTestStore(
             initialState: Login.State(
                 username: "testuser",
                 password: "wrongpass"
             ),
-            tokenProvider: failingTokenProvider
+            tokenProvider: .failing
         )
         
         await store.send(.didTapLoginButton) {
