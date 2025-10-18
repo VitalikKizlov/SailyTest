@@ -9,6 +9,32 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 
+extension Login.State {
+    var usernameImageColor: Color {
+        focus == .username ? .lightGrey : .lightGrey.opacity(0.6)
+    }
+    
+    var passwordImageColor: Color {
+        focus == .password ? .lightGrey : .lightGrey.opacity(0.6)
+    }
+    
+    var usernameImage: some View {
+        Image("usernameIcon")
+            .resizable()
+            .frame(width: 16, height: 16, alignment: .center)
+            .padding(.leading, 8)
+            .foregroundColor(usernameImageColor)
+    }
+    
+    var passwordImage: some View {
+        Image("lockIcon")
+            .resizable()
+            .frame(width: 16, height: 16, alignment: .center)
+            .padding(.leading, 8)
+            .foregroundColor(passwordImageColor)
+    }
+}
+
 struct LoginView: View {
 
     @Bindable var store: StoreOf<Login>
@@ -32,6 +58,7 @@ struct LoginView: View {
             .padding(.top, 154)
         }
         .ignoresSafeArea(.all)
+        .bind($store.focus, to: $focus)
     }
 }
 
@@ -62,20 +89,13 @@ private extension LoginView {
             .foregroundColor(.fieldBackground).opacity(0.12)
     }
 
-    func textfieldImage(isSecure: Bool) -> some View {
-        let name = isSecure ? "lockIcon" : "usernameIcon"
-        return Image(name)
-            .resizable()
-            .frame(width: 16, height: 16, alignment: .center)
-            .padding(.leading, 8)
-    }
 
     func textfields() -> some View {
         VStack(spacing: 16) {
             rectangle
                 .overlay(
                     HStack(spacing: 9) {
-                        textfieldImage(isSecure: false)
+                        store.state.usernameImage
 
                         TextField("Username ", text: $store.state.username)
                             .focused($focus, equals: .username)
@@ -87,7 +107,7 @@ private extension LoginView {
             rectangle
                 .overlay(
                     HStack(spacing: 9) {
-                        textfieldImage(isSecure: false)
+                        store.state.passwordImage
 
                         SecureField("Password", text: $store.state.password)
                             .focused($focus, equals: .password)

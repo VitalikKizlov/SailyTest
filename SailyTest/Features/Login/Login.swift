@@ -39,5 +39,6 @@ struct Login {
                 return .none
             }
         }
+        ._printChanges()
     }
 }
