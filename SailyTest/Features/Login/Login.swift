@@ -18,6 +18,8 @@ struct Login {
     @ObservableState
     struct State: Equatable {
         var focus: Field?
+        var username: String = ""
+        var password: String = ""
     }
 
     enum Action: BindableAction, Equatable {
