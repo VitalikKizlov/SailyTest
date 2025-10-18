@@ -40,4 +40,5 @@ extension Color {
     public static let mainBlue = Color(hex: "#4687FF")
     public static let lightGrey = Color(hex: "#3C3C43")
     public static let headerTitle = Color(hex: "#666666")
+    public static let headerBackground = Color(hex: "#F2F2F7")
 }

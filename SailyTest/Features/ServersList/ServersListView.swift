@@ -14,18 +14,20 @@ struct ServersListView: View {
     @Bindable var store: StoreOf<ServersList>
 
     var body: some View {
-        NavigationView {
-            List {
-                Section(header: ListHeaderView()) {
-                    ForEach(store.servers) { server in
-                        ServerRowView(server: server)
-                    }
+        NavigationStack {
+            VStack(spacing: 0) {
+                header()
+
+                if store.loadingState == .loading {
+                    loadingView()
+                } else {
+                    serversList()
                 }
             }
             .navigationBarTitle("Testio.", displayMode: .inline)
-            .navigationBarTitleDisplayMode(.inline)
-            .listStyle(GroupedListStyle())
             .navigationBarItems(leading: sortButton(), trailing: logoutButton())
+            .toolbarBackground(Color.white, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .onAppear {
                 store.send(.onAppear)
             }
@@ -38,9 +40,10 @@ private extension ServersListView {
         Button {
             store.send(.didTapFilterButton)
         } label: {
-            HStack {
+            HStack(spacing: 4) {
                 Image("sortIcon")
                 Text("Filter")
+                    .font(.system(size: 17, weight: .regular))
             }
         }
     }
@@ -49,38 +52,61 @@ private extension ServersListView {
         Button {
             store.send(.didTapLogoutButton)
         } label: {
-            HStack {
+            HStack(spacing: 4) {
                 Text("Logout")
+                    .font(.system(size: 17, weight: .regular))
                 Image("logoutIcon")
             }
         }
     }
-}
 
-struct ListHeaderView: View {
-    var body: some View {
+    func header() -> some View {
         HStack {
             Text("SERVER")
+                .font(.system(size: 13, weight: .regular))
                 .foregroundColor(.headerTitle)
             Spacer()
             Text("DISTANCE")
+                .font(.system(size: 13, weight: .regular))
                 .foregroundColor(.headerTitle)
         }
-        .padding(.horizontal)
-    }
-}
-
-struct ServerRowView: View {
-
-    let server: Server
-
-    var body: some View {
-        HStack {
-            Text(server.name)
-            Spacer()
-            Text("\(server.distance)")
-        }
         .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.headerBackground)
+    }
+
+    func serversList() -> some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(Array(store.servers.enumerated()), id: \.element.id) { index, item in
+                    ServerRowView(server: item)
+                        .contentShape(Rectangle())
+                        .overlay(alignment: .bottom) {
+                            if index != store.servers.count - 1 {
+                                separator()
+                            }
+                        }
+                }
+            }
+        }
+    }
+
+    func separator() -> some View {
+        Divider()
+            .overlay(Color.gray)
+            .padding(.leading)
+    }
+
+    func loadingView() -> some View {
+        VStack {
+            Spacer()
+            ProgressView()
+            Text("Loading servers...")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.headerTitle)
+                .padding(.top, 16)
+            Spacer()
+        }
     }
 }
 
