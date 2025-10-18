@@ -23,6 +23,7 @@ struct Login {
     }
 
     enum Action: BindableAction, Equatable {
+        case didTapOutsideTextfield
         case didTapLoginButton
         case binding(BindingAction<State>)
     }
@@ -33,6 +34,9 @@ struct Login {
         Reduce { state, action in
 
             switch action {
+            case .didTapOutsideTextfield:
+                state.focus = .none
+                return .none
             case .didTapLoginButton:
                 return .none
             case .binding(_):

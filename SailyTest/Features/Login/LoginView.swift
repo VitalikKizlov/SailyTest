@@ -60,7 +60,11 @@ struct LoginView: View {
             .padding(.top, 154)
         }
         .ignoresSafeArea(.all)
+        .ignoresSafeArea(.keyboard)
         .bind($store.focus, to: $focus)
+        .onTapGesture {
+            store.send(.didTapOutsideTextfield)
+        }
     }
 }
 
