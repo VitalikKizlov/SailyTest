@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FB3C84332EA3B41D00D65885 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = FB3C84322EA3B41D00D65885 /* ComposableArchitecture */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FB64884F2EA3A9740089A1E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB3C84332EA3B41D00D65885 /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,12 +77,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FB3C84312EA3B41D00D65885 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		FB6488382EA3A9710089A1E1 = {
 			isa = PBXGroup;
 			children = (
 				FB6488432EA3A9710089A1E1 /* SailyTest */,
 				FB6488512EA3A9740089A1E1 /* SailyTestTests */,
 				FB64885B2EA3A9740089A1E1 /* SailyTestUITests */,
+				FB3C84312EA3B41D00D65885 /* Frameworks */,
 				FB6488422EA3A9710089A1E1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +125,7 @@
 			);
 			name = SailyTest;
 			packageProductDependencies = (
+				FB3C84322EA3B41D00D65885 /* ComposableArchitecture */,
 			);
 			productName = SailyTest;
 			productReference = FB6488412EA3A9710089A1E1 /* SailyTest.app */;
@@ -592,6 +606,14 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FB3C84322EA3B41D00D65885 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FB6488B92EA3ABBB0089A1E1 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FB6488392EA3A9710089A1E1 /* Project object */;
 }
