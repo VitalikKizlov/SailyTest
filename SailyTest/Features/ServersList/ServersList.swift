@@ -57,17 +57,7 @@ struct ServersList {
                 return .send(.fetchServers)
 
             case .didTapFilterButton:
-                state.confirmationDialog = ConfirmationDialogState {
-                    TextState("Sort by")
-                } actions: {
-                    ButtonState(action: .sortByDistance) {
-                        TextState("By distance")
-                    }
-                    ButtonState(action: .sortAlphabetically) {
-                        TextState("Alphabetical")
-                    }
-                }
-                return .none
+                return showConfirmationDialog(&state)
 
             case .didTapLogoutButton:
                 return .run { _ in
@@ -132,5 +122,19 @@ private extension ServersList {
         case .alphabetical:
             return IdentifiedArrayOf(uniqueElements: servers.sorted { $0.name < $1.name })
         }
+    }
+
+    func showConfirmationDialog(_ state: inout State) -> Effect<Action> {
+        state.confirmationDialog = ConfirmationDialogState {
+            TextState("Sort by")
+        } actions: {
+            ButtonState(action: .sortByDistance) {
+                TextState("By distance")
+            }
+            ButtonState(action: .sortAlphabetically) {
+                TextState("Alphabetical")
+            }
+        }
+        return .none
     }
 }

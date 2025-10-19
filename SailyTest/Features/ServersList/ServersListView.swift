@@ -21,7 +21,7 @@ struct ServersListView: View {
                 // TODO: - add zstack with animation
                 // add separate loading view with image background and spinner
                 if store.loadingState == .loading {
-                    loadingView()
+                    LoadingView()
                 } else {
                     serversList()
                 }
@@ -105,15 +105,6 @@ private extension ServersListView {
         Divider()
             .overlay(Color.gray)
             .padding(.leading)
-    }
-
-    func loadingView() -> some View {
-        VStack(spacing: 6) {
-            ProgressView()
-            Text("Loading list")
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(.headerTitle)
-        }
     }
 }
 
