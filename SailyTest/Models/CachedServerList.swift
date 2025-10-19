@@ -6,22 +6,24 @@
 //
 
 import Foundation
+import ComposableArchitecture
 
 struct CachedServerList: Codable, Equatable {
     let servers: [Server]
     let lastFetched: Date
     let cacheExpiry: TimeInterval
     
-    init(servers: [Server], cacheExpiry: TimeInterval = 300) {
+    init(servers: [Server], lastFetched: Date, cacheExpiry: TimeInterval = 300) {
         self.servers = servers
-        self.lastFetched = Date()
+        self.lastFetched = lastFetched
         self.cacheExpiry = cacheExpiry
     }
     
     // MARK: - Cache Validation
     
     var isExpired: Bool {
-        Date().timeIntervalSince(lastFetched) > cacheExpiry
+        @Dependency(\.date.now) var now
+        return now.timeIntervalSince(lastFetched) > cacheExpiry
     }
     
     var shouldRefresh: Bool {

@@ -23,7 +23,8 @@ extension StorageClient: DependencyKey {
         
         return StorageClient(
             saveServers: { servers in
-                let cachedList = CachedServerList(servers: servers)
+                @Dependency(\.date.now) var now
+                let cachedList = CachedServerList(servers: servers, lastFetched: now)
                 try storageWrapper.set(cachedList, forKey: serversKey)
             },
             loadServers: {
@@ -38,7 +39,12 @@ extension StorageClient: DependencyKey {
         )
     }
     
-    static var testValue: StorageClient = .init()
+    static var testValue: StorageClient = StorageClient(
+        saveServers: { _ in },
+        loadServers: { nil },
+        clearServers: { },
+        hasCachedServers: { false }
+    )
     
     static let previewValue: StorageClient = .mock
 }
@@ -47,7 +53,8 @@ extension StorageClient {
     static let mock = StorageClient(
         saveServers: { _ in },
         loadServers: { 
-            CachedServerList(servers: Server.mock)
+            @Dependency(\.date.now) var now
+            return CachedServerList(servers: Server.mock, lastFetched: now)
         },
         clearServers: { },
         hasCachedServers: { true }
