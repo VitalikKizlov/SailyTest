@@ -27,6 +27,7 @@ struct AppReducer {
         case checkCredentials
         case credentialsFound
         case credentialsNotFound
+        case authFailed
         case contentMode(ContentModeAction)
         case binding(BindingAction<State>)
 
@@ -40,6 +41,8 @@ struct AppReducer {
     @Dependency(\.keychainClient) private var keychainClient
 
     var body: some Reducer<State, Action> {
+        BindingReducer()
+        
         Reduce { state, action in
             switch action {
             case .onAppear:
@@ -55,6 +58,12 @@ struct AppReducer {
             case .credentialsNotFound:
                 state.contentMode = .login(Login.State())
                 return .none
+                
+            case .authFailed:
+                state.contentMode = .login(Login.State())
+                return .run { _ in
+                    try keychainClient.clearAll()
+                }
                 
             case .contentMode(let contentModeAction):
                 switch contentModeAction {
@@ -72,6 +81,8 @@ struct AppReducer {
                     case .didTapLogoutButton:
                         state.contentMode = .login(Login.State())
                         return .none
+                    case .authFailed:
+                        return .send(.authFailed)
                     default:
                         return .none
                     }

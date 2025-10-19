@@ -37,6 +37,7 @@ struct ServersList {
         case fetchServers
         case serversFetched([Server])
         case fetchFailed
+        case authFailed
 
         case confirmationDialog(PresentationAction<ConfirmationDialog>)
 
@@ -76,6 +77,11 @@ struct ServersList {
                 return .none
                 
             case .fetchFailed:
+                // Handle other errors locally (could show error message)
+                return .none
+                
+            case .authFailed:
+                // This will be handled by the parent AppReducer
                 return .none
 
             case .setLoadingState(let loadingState):
@@ -110,7 +116,13 @@ private extension ServersList {
                 let servers = try await serversProvider.servers()
                 await send(.serversFetched(servers))
             } catch {
-                await send(.fetchFailed)
+                // Check if it's an auth failure (401 after refresh attempt)
+                if let urlError = error as? URLError, urlError.code == .userAuthenticationRequired {
+                    await send(.authFailed)
+                } else {
+                    // Handle other errors locally
+                    await send(.fetchFailed)
+                }
             }
         }
     }
