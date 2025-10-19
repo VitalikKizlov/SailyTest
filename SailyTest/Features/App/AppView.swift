@@ -30,3 +30,14 @@ struct AppView: View {
         }
     }
 }
+
+#Preview {
+    AppView(
+        store: .init(
+            initialState: AppReducer.State(),
+            reducer: {
+                AppReducer()
+            }
+        )
+    )
+}

@@ -22,12 +22,13 @@ struct AppReducer {
         var contentMode: ContentMode = .login(Login.State())
     }
 
-    enum Action: Equatable {
+    enum Action: BindableAction, Equatable {
         case onAppear
         case checkCredentials
         case credentialsFound
         case credentialsNotFound
         case contentMode(ContentModeAction)
+        case binding(BindingAction<State>)
 
         @CasePathable
         enum ContentModeAction: Equatable {
@@ -75,7 +76,16 @@ struct AppReducer {
                         return .none
                     }
                 }
+                
+            case .binding:
+                return .none
             }
+        }
+        .ifLet(\.contentMode.login, action: \.contentMode.login) {
+            Login()
+        }
+        .ifLet(\.contentMode.serversList, action: \.contentMode.serversList) {
+            ServersList()
         }
     }
 }
