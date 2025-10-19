@@ -23,12 +23,31 @@ struct AppReducer {
     }
 
     enum Action: Equatable {
+        case onAppear
         case contentMode(ContentModeAction)
 
         @CasePathable
         enum ContentModeAction: Equatable {
             case login(Login.Action)
             case serversList(ServersList.Action)
+        }
+    }
+
+    var body: some Reducer<State, Action> {
+        Reduce { state, action in
+            switch action {
+            case .onAppear:
+                return .none
+                
+            case .contentMode(let contentModeAction):
+                switch contentModeAction {
+                case .login(let loginAction):
+                    return .none
+
+                case .serversList(let serverListAction):
+                    return .none
+                }
+            }
         }
     }
 }

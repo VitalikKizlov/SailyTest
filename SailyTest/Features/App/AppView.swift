@@ -25,5 +25,8 @@ struct AppView: View {
             }
         }
         .animation(.easeInOut, value: store.contentMode)
+        .onAppear {
+            store.send(.onAppear)
+        }
     }
 }
