@@ -64,6 +64,14 @@ extension KeychainClient {
         getToken: { Token.mock },
         clearAll: { }
     )
+    
+    static let failing = KeychainClient(
+        storeValue: { _, _ in throw KeychainWrapper.KeychainError(status: errSecItemNotFound, context: "test") },
+        storeToken: { _ in throw KeychainWrapper.KeychainError(status: errSecItemNotFound, context: "test") },
+        getCredentials: { throw KeychainWrapper.KeychainError(status: errSecItemNotFound, context: "test") },
+        getToken: { throw KeychainWrapper.KeychainError(status: errSecItemNotFound, context: "test") },
+        clearAll: { throw KeychainWrapper.KeychainError(status: errSecItemNotFound, context: "test") }
+    )
 }
 
 extension DependencyValues {
