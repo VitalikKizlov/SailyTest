@@ -48,6 +48,7 @@ struct ServersList {
     }
 
     @Dependency(\.serverProvider) private var serversProvider
+    @Dependency(\.keychainClient) private var keychainClient
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
@@ -69,7 +70,9 @@ struct ServersList {
                 return .none
 
             case .didTapLogoutButton:
-                return .none
+                return .run { _ in
+                    try keychainClient.clearAll()
+                }
 
             case .fetchServers:
                 return .concatenate(

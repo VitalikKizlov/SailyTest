@@ -24,6 +24,9 @@ struct AppReducer {
 
     enum Action: Equatable {
         case onAppear
+        case checkCredentials
+        case credentialsFound
+        case credentialsNotFound
         case contentMode(ContentModeAction)
 
         @CasePathable
@@ -32,21 +35,59 @@ struct AppReducer {
             case serversList(ServersList.Action)
         }
     }
+    
+    @Dependency(\.keychainClient) private var keychainClient
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
+                return .send(.checkCredentials)
+                
+            case .checkCredentials:
+                return checkCredentials()
+                
+            case .credentialsFound:
+                state.contentMode = .serversList(ServersList.State())
+                return .none
+                
+            case .credentialsNotFound:
+                state.contentMode = .login(Login.State())
                 return .none
                 
             case .contentMode(let contentModeAction):
                 switch contentModeAction {
                 case .login(let loginAction):
-                    return .none
+                    switch loginAction {
+                    case .loginSucceeded:
+                        state.contentMode = .serversList(ServersList.State())
+                        return .none
+                    default:
+                        return .none
+                    }
 
                 case .serversList(let serverListAction):
-                    return .none
+                    switch serverListAction {
+                    case .didTapLogoutButton:
+                        state.contentMode = .login(Login.State())
+                        return .none
+                    default:
+                        return .none
+                    }
                 }
+            }
+        }
+    }
+}
+
+private extension AppReducer {
+    func checkCredentials() -> Effect<Action> {
+        .run { send in
+            do {
+                _ = try keychainClient.getCredentials()
+                await send(.credentialsFound)
+            } catch {
+                await send(.credentialsNotFound)
             }
         }
     }

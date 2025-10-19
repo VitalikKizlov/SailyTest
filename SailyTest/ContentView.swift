@@ -10,11 +10,11 @@ import ComposableArchitecture
 
 struct ContentView: View {
     var body: some View {
-        LoginView(
+        AppView(
             store: .init(
-                initialState: Login.State(),
+                initialState: AppReducer.State(),
                 reducer: {
-                    Login()
+                    AppReducer()
                 }
             )
         )
