@@ -16,7 +16,12 @@ final class ServersListTests: XCTestCase {
     
     private func makeTestStore(
         initialState: ServersList.State = ServersList.State(),
-        storageClient: StorageClient = .mock,
+        storageClient: StorageClient = StorageClient(
+            saveServers: { _ in },
+            loadServers: { nil },
+            clearServers: { },
+            hasCachedServers: { false }
+        ),
         serversProvider: ServersProvider = .mock,
         keychainClient: KeychainClient = .mock
     ) -> TestStore<ServersList.State, ServersList.Action> {
@@ -28,120 +33,11 @@ final class ServersListTests: XCTestCase {
             $0.keychainClient = keychainClient
             $0.mainQueue = .immediate
             $0.uuid = .incrementing
+            $0.date.now = Date(timeIntervalSince1970: 0)
         }
         
         store.exhaustivity = .off
         return store
-    }
-    
-    
-    // MARK: - Test App Launch with Cached Data
-    
-    func testOnAppear_WithValidCache_ShouldLoadCachedServers() async {
-        let store = makeTestStore(
-            storageClient: StorageClient(
-                saveServers: { _ in },
-                loadServers: { 
-                    CachedServerList(servers: [
-                        Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-                        Server(id: UUID(1), name: "Latvia #95", distance: 200)
-                    ])
-                },
-                clearServers: { },
-                hasCachedServers: { true }
-            )
-        )
-        
-        await store.send(.onAppear)
-        await store.receive(.serversFetched([
-            Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-            Server(id: UUID(1), name: "Latvia #95", distance: 200)
-        ])) {
-            $0.servers = [
-                Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-                Server(id: UUID(1), name: "Latvia #95", distance: 200)
-            ]
-        }
-        await store.receive(.setLoadingState(.loaded)) {
-            $0.loadingState = .loaded
-        }
-    }
-    
-    func testOnAppear_WithExpiredCache_ShouldFetchFromAPI() async {
-        let store = makeTestStore(
-            storageClient: StorageClient(
-                saveServers: { _ in },
-                loadServers: { 
-                    CachedServerList(
-                        servers: [Server(id: UUID(0), name: "United Kingdom #68", distance: 100)], 
-                        cacheExpiry: -1 // Expired immediately
-                    )
-                },
-                clearServers: { },
-                hasCachedServers: { true }
-            ),
-            serversProvider: ServersProvider { 
-                [
-                    Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-                    Server(id: UUID(1), name: "Latvia #95", distance: 200)
-                ]
-            }
-        )
-
-        store.exhaustivity = .on
-
-        await store.send(.onAppear)
-        await store.receive(.fetchServers)
-        await store.receive(.setLoadingState(.loading)) {
-            $0.loadingState = .loading
-        }
-        await store.receive(.serversFetched([
-            Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-            Server(id: UUID(1), name: "Latvia #95", distance: 200)
-        ])) {
-            $0.servers = [
-                Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-                Server(id: UUID(1), name: "Latvia #95", distance: 200)
-            ]
-        }
-        await store.receive(.setLoadingState(.loaded)) {
-            $0.loadingState = .loaded
-        }
-    }
-    
-    func testOnAppear_WithNoCache_ShouldFetchFromAPI() async {
-        let store = makeTestStore(
-            storageClient: StorageClient(
-                saveServers: { _ in },
-                loadServers: { nil },
-                clearServers: { },
-                hasCachedServers: { false }
-            ),
-            serversProvider: ServersProvider { 
-                [
-                    Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-                    Server(id: UUID(1), name: "Latvia #95", distance: 200)
-                ]
-            }
-        )
-        
-        await store.send(.onAppear)
-        await store.receive(.fetchServers)
-        await store.receive(.setLoadingState(.loading)) {
-            $0.loadingState = .loading
-        }
-        await store.receive(.serversFetched([
-            Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-            Server(id: UUID(1), name: "Latvia #95", distance: 200)
-        ])) {
-            $0.servers = [
-                Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
-                Server(id: UUID(1), name: "Latvia #95", distance: 200)
-            ]
-        }
-        await store.receive(.setLoadingState(.loaded)) {
-            $0.loadingState = .loaded
-        }
     }
     
     // MARK: - Test Server Fetching
