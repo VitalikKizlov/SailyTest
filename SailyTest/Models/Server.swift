@@ -6,14 +6,15 @@
 //
 
 import Foundation
+import ComposableArchitecture
 
 struct Server: Codable, Hashable, Identifiable {
     let id: UUID
     let name: String
     let distance: Int
     
-    init(name: String, distance: Int) {
-        self.id = UUID()
+    init(id: UUID, name: String, distance: Int) {
+        self.id = id
         self.name = name
         self.distance = distance
     }
@@ -26,7 +27,8 @@ struct Server: Codable, Hashable, Identifiable {
     // Custom decoder to handle missing id field
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = UUID()
+        @Dependency(\.uuid) var uuid
+        self.id = uuid()
         self.name = try container.decode(String.self, forKey: .name)
         self.distance = try container.decode(Int.self, forKey: .distance)
     }
@@ -49,36 +51,40 @@ struct Server: Codable, Hashable, Identifiable {
 }
 
 extension Server {
-    static let mock: [Server] = [
-        .init(name: "United Kingdom #68", distance: 100),
-        .init(name: "Latvia #95", distance: 200),
-        .init(name: "Germany #26", distance: 300),
-        .init(name: "United States #12", distance: 150),
-        .init(name: "Netherlands #44", distance: 250),
-        .init(name: "France #77", distance: 180),
-        .init(name: "Sweden #33", distance: 220),
-        .init(name: "Norway #19", distance: 190),
-        .init(name: "Denmark #55", distance: 210),
-        .init(name: "Finland #88", distance: 240),
-        .init(name: "Poland #66", distance: 170),
-        .init(name: "Czech Republic #41", distance: 160),
-        .init(name: "Austria #73", distance: 230),
-        .init(name: "Switzerland #29", distance: 200),
-        .init(name: "Italy #52", distance: 280),
-        .init(name: "Spain #84", distance: 320),
-        .init(name: "Portugal #37", distance: 350),
-        .init(name: "Belgium #61", distance: 140),
-        .init(name: "Luxembourg #15", distance: 130),
-        .init(name: "Ireland #78", distance: 120),
-        .init(name: "Iceland #92", distance: 400),
-        .init(name: "Estonia #46", distance: 260),
-        .init(name: "Lithuania #83", distance: 270),
-        .init(name: "Slovakia #58", distance: 290),
-        .init(name: "Slovenia #24", distance: 310),
-        .init(name: "Croatia #67", distance: 330),
-        .init(name: "Hungary #39", distance: 340),
-        .init(name: "Romania #71", distance: 360),
-        .init(name: "Bulgaria #85", distance: 380),
-        .init(name: "Greece #13", distance: 420)
-    ]
+    @Dependency(\.uuid) static var uuid
+    
+    static var mock: [Server] {
+        [
+            .init(id: uuid(), name: "United Kingdom #68", distance: 100),
+            .init(id: uuid(), name: "Latvia #95", distance: 200),
+            .init(id: uuid(), name: "Germany #26", distance: 300),
+            .init(id: uuid(), name: "United States #12", distance: 150),
+            .init(id: uuid(), name: "Netherlands #44", distance: 250),
+            .init(id: uuid(), name: "France #77", distance: 180),
+            .init(id: uuid(), name: "Sweden #33", distance: 220),
+            .init(id: uuid(), name: "Norway #19", distance: 190),
+            .init(id: uuid(), name: "Denmark #55", distance: 210),
+            .init(id: uuid(), name: "Finland #88", distance: 240),
+            .init(id: uuid(), name: "Poland #66", distance: 170),
+            .init(id: uuid(), name: "Czech Republic #41", distance: 160),
+            .init(id: uuid(), name: "Austria #73", distance: 230),
+            .init(id: uuid(), name: "Switzerland #29", distance: 200),
+            .init(id: uuid(), name: "Italy #52", distance: 280),
+            .init(id: uuid(), name: "Spain #84", distance: 320),
+            .init(id: uuid(), name: "Portugal #37", distance: 350),
+            .init(id: uuid(), name: "Belgium #61", distance: 140),
+            .init(id: uuid(), name: "Luxembourg #15", distance: 130),
+            .init(id: uuid(), name: "Ireland #78", distance: 120),
+            .init(id: uuid(), name: "Iceland #92", distance: 400),
+            .init(id: uuid(), name: "Estonia #46", distance: 260),
+            .init(id: uuid(), name: "Lithuania #83", distance: 270),
+            .init(id: uuid(), name: "Slovakia #58", distance: 290),
+            .init(id: uuid(), name: "Slovenia #24", distance: 310),
+            .init(id: uuid(), name: "Croatia #67", distance: 330),
+            .init(id: uuid(), name: "Hungary #39", distance: 340),
+            .init(id: uuid(), name: "Romania #71", distance: 360),
+            .init(id: uuid(), name: "Bulgaria #85", distance: 380),
+            .init(id: uuid(), name: "Greece #13", distance: 420)
+        ]
+    }
 }
