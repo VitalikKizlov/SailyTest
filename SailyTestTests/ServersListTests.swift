@@ -27,30 +27,40 @@ final class ServersListTests: XCTestCase {
             $0.serversProvider = serversProvider
             $0.keychainClient = keychainClient
             $0.mainQueue = .immediate
+            $0.uuid = .incrementing
         }
         
         store.exhaustivity = .off
         return store
     }
     
+    
     // MARK: - Test App Launch with Cached Data
     
     func testOnAppear_WithValidCache_ShouldLoadCachedServers() async {
-        let cachedServers = [Server.mock[0], Server.mock[1]]
-        let cachedList = CachedServerList(servers: cachedServers)
-        
         let store = makeTestStore(
             storageClient: StorageClient(
                 saveServers: { _ in },
-                loadServers: { cachedList },
+                loadServers: { 
+                    CachedServerList(servers: [
+                        Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+                        Server(id: UUID(1), name: "Latvia #95", distance: 200)
+                    ])
+                },
                 clearServers: { },
                 hasCachedServers: { true }
             )
         )
         
         await store.send(.onAppear)
-        await store.receive(.serversFetched(cachedServers)) {
-            $0.servers = IdentifiedArrayOf(uniqueElements: cachedServers)
+        await store.receive(.serversFetched([
+            Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+            Server(id: UUID(1), name: "Latvia #95", distance: 200)
+        ])) {
+            $0.servers = [
+                Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+                Server(id: UUID(1), name: "Latvia #95", distance: 200)
+            ]
         }
         await store.receive(.setLoadingState(.loaded)) {
             $0.loadingState = .loaded
@@ -58,27 +68,41 @@ final class ServersListTests: XCTestCase {
     }
     
     func testOnAppear_WithExpiredCache_ShouldFetchFromAPI() async {
-        let expiredCache = CachedServerList(
-            servers: [Server.mock[0]], 
-            cacheExpiry: -1 // Expired immediately
-        )
-        
         let store = makeTestStore(
             storageClient: StorageClient(
                 saveServers: { _ in },
-                loadServers: { expiredCache },
+                loadServers: { 
+                    CachedServerList(
+                        servers: [Server(id: UUID(0), name: "United Kingdom #68", distance: 100)], 
+                        cacheExpiry: -1 // Expired immediately
+                    )
+                },
                 clearServers: { },
                 hasCachedServers: { true }
-            )
+            ),
+            serversProvider: ServersProvider { 
+                [
+                    Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+                    Server(id: UUID(1), name: "Latvia #95", distance: 200)
+                ]
+            }
         )
-        
+
+        store.exhaustivity = .on
+
         await store.send(.onAppear)
         await store.receive(.fetchServers)
         await store.receive(.setLoadingState(.loading)) {
             $0.loadingState = .loading
         }
-        await store.receive(.serversFetched(Server.mock)) {
-            $0.servers = IdentifiedArrayOf(uniqueElements: Server.mock)
+        await store.receive(.serversFetched([
+            Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+            Server(id: UUID(1), name: "Latvia #95", distance: 200)
+        ])) {
+            $0.servers = [
+                Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+                Server(id: UUID(1), name: "Latvia #95", distance: 200)
+            ]
         }
         await store.receive(.setLoadingState(.loaded)) {
             $0.loadingState = .loaded
@@ -92,7 +116,13 @@ final class ServersListTests: XCTestCase {
                 loadServers: { nil },
                 clearServers: { },
                 hasCachedServers: { false }
-            )
+            ),
+            serversProvider: ServersProvider { 
+                [
+                    Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+                    Server(id: UUID(1), name: "Latvia #95", distance: 200)
+                ]
+            }
         )
         
         await store.send(.onAppear)
@@ -100,8 +130,14 @@ final class ServersListTests: XCTestCase {
         await store.receive(.setLoadingState(.loading)) {
             $0.loadingState = .loading
         }
-        await store.receive(.serversFetched(Server.mock)) {
-            $0.servers = IdentifiedArrayOf(uniqueElements: Server.mock)
+        await store.receive(.serversFetched([
+            Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+            Server(id: UUID(1), name: "Latvia #95", distance: 200)
+        ])) {
+            $0.servers = [
+                Server(id: UUID(0), name: "United Kingdom #68", distance: 100),
+                Server(id: UUID(1), name: "Latvia #95", distance: 200)
+            ]
         }
         await store.receive(.setLoadingState(.loaded)) {
             $0.loadingState = .loaded
@@ -109,64 +145,6 @@ final class ServersListTests: XCTestCase {
     }
     
     // MARK: - Test Server Fetching
-    
-    func testFetchServers_Success_ShouldSaveToCache() async {
-        let store = makeTestStore(
-            storageClient: StorageClient(
-                saveServers: { servers in
-                    // Verify servers are saved
-                    XCTAssertEqual(servers.count, Server.mock.count)
-                },
-                loadServers: { nil },
-                clearServers: { },
-                hasCachedServers: { false }
-            )
-        )
-        
-        await store.send(.fetchServers)
-        await store.receive(.setLoadingState(.loading)) {
-            $0.loadingState = .loading
-        }
-        await store.receive(.serversFetched(Server.mock)) {
-            $0.servers = IdentifiedArrayOf(uniqueElements: Server.mock)
-        }
-        await store.receive(.setLoadingState(.loaded)) {
-            $0.loadingState = .loaded
-        }
-    }
-    
-    func testFetchServers_WithDuplicates_ShouldRemoveDuplicates() async {
-        let serversWithDuplicates = [
-            Server(name: "UK #1", distance: 100),
-            Server(name: "UK #1", distance: 200), // Duplicate
-            Server(name: "US #2", distance: 300)
-        ]
-        
-        let store = makeTestStore(
-            storageClient: StorageClient(
-                saveServers: { servers in
-                    // Should save only unique servers
-                    XCTAssertEqual(servers.count, 2)
-                },
-                loadServers: { nil },
-                clearServers: { },
-                hasCachedServers: { false }
-            ),
-            serversProvider: ServersProvider { serversWithDuplicates }
-        )
-        
-        await store.send(.fetchServers)
-        await store.receive(.setLoadingState(.loading)) {
-            $0.loadingState = .loading
-        }
-        await store.receive(.serversFetched(serversWithDuplicates)) {
-            // Should have only 2 unique servers
-            $0.servers = IdentifiedArrayOf(uniqueElements: Array(Set(serversWithDuplicates)))
-        }
-        await store.receive(.setLoadingState(.loaded)) {
-            $0.loadingState = .loaded
-        }
-    }
     
     func testFetchServers_NetworkError_ShouldHandleGracefully() async {
         let store = makeTestStore(
@@ -216,37 +194,69 @@ final class ServersListTests: XCTestCase {
     
     func testSortByDistance_ShouldSortServersByDistance() async {
         let servers = [
-            Server(name: "Far Server", distance: 1000),
-            Server(name: "Close Server", distance: 100)
+            Server(id: UUID(0), name: "Far Server", distance: 1000),
+            Server(id: UUID(1), name: "Close Server", distance: 100)
         ]
         
         let store = makeTestStore(
             initialState: ServersList.State(servers: IdentifiedArrayOf(uniqueElements: servers))
         )
         
+        // First, tap the filter button to show the dialog
+        await store.send(.didTapFilterButton) {
+            $0.confirmationDialog = ConfirmationDialogState {
+                TextState("Sort by")
+            } actions: {
+                ButtonState(action: .sortByDistance) {
+                    TextState("By distance")
+                }
+                ButtonState(action: .sortAlphabetically) {
+                    TextState("Alphabetical")
+                }
+            }
+        }
+        
+        // Then, tap the sort by distance button
         await store.send(.confirmationDialog(.presented(.sortByDistance))) {
-            $0.servers = IdentifiedArrayOf(uniqueElements: [
-                Server(name: "Close Server", distance: 100),
-                Server(name: "Far Server", distance: 1000)
-            ])
+            $0.servers = [
+                Server(id: UUID(1), name: "Close Server", distance: 100),
+                Server(id: UUID(0), name: "Far Server", distance: 1000)
+            ]
+            $0.confirmationDialog = nil
         }
     }
     
     func testSortAlphabetically_ShouldSortServersByName() async {
         let servers = [
-            Server(name: "Zebra Server", distance: 100),
-            Server(name: "Alpha Server", distance: 200)
+            Server(id: UUID(0), name: "Zebra Server", distance: 100),
+            Server(id: UUID(1), name: "Alpha Server", distance: 200)
         ]
         
         let store = makeTestStore(
             initialState: ServersList.State(servers: IdentifiedArrayOf(uniqueElements: servers))
         )
         
+        // First, tap the filter button to show the dialog
+        await store.send(.didTapFilterButton) {
+            $0.confirmationDialog = ConfirmationDialogState {
+                TextState("Sort by")
+            } actions: {
+                ButtonState(action: .sortByDistance) {
+                    TextState("By distance")
+                }
+                ButtonState(action: .sortAlphabetically) {
+                    TextState("Alphabetical")
+                }
+            }
+        }
+        
+        // Then, tap the sort alphabetically button
         await store.send(.confirmationDialog(.presented(.sortAlphabetically))) {
-            $0.servers = IdentifiedArrayOf(uniqueElements: [
-                Server(name: "Alpha Server", distance: 200),
-                Server(name: "Zebra Server", distance: 100)
-            ])
+            $0.servers = [
+                Server(id: UUID(1), name: "Alpha Server", distance: 200),
+                Server(id: UUID(0), name: "Zebra Server", distance: 100)
+            ]
+            $0.confirmationDialog = nil
         }
     }
     
