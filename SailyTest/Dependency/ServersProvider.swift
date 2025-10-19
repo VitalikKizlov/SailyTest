@@ -39,7 +39,7 @@ extension ServersProvider {
 }
 
 extension DependencyValues {
-    var serverProvider: ServersProvider {
+    var serversProvider: ServersProvider {
         get { self[ServersProvider.self] }
         set { self[ServersProvider.self] = newValue }
     }

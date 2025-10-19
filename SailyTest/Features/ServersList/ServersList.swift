@@ -48,7 +48,7 @@ struct ServersList {
         }
     }
 
-    @Dependency(\.serverProvider) private var serversProvider
+    @Dependency(\.serversProvider) private var serversProvider
     @Dependency(\.keychainClient) private var keychainClient
     @Dependency(\.storageClient) private var storageClient
 
