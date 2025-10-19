@@ -50,12 +50,13 @@ struct ServersList {
 
     @Dependency(\.serverProvider) private var serversProvider
     @Dependency(\.keychainClient) private var keychainClient
+    @Dependency(\.storageClient) private var storageClient
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .send(.fetchServers)
+                return loadServersWithCache()
 
             case .didTapFilterButton:
                 return showConfirmationDialog(&state)
@@ -73,8 +74,13 @@ struct ServersList {
                 )
 
             case .serversFetched(let servers):
-                state.servers = IdentifiedArrayOf(uniqueElements: servers)
-                return .none
+                let uniqueServers = Array(Set(servers))
+                state.servers = IdentifiedArrayOf(uniqueElements: uniqueServers)
+                
+                // Save to cache
+                return .run { _ in
+                    try storageClient.saveServers(uniqueServers)
+                }
                 
             case .fetchFailed:
                 // Handle other errors locally (could show error message)
@@ -148,5 +154,21 @@ private extension ServersList {
             }
         }
         return .none
+    }
+    
+    func loadServersWithCache() -> Effect<Action> {
+        .run { send in
+            // Try to load from cache first
+            if let cached = try? storageClient.loadServers(),
+               !cached.shouldRefresh {
+                // Use cached data
+                await send(.serversFetched(cached.servers))
+                await send(.setLoadingState(.loaded))
+                return
+            }
+            
+            // Cache expired or doesn't exist, fetch from API
+            await send(.fetchServers)
+        }
     }
 }
