@@ -15,11 +15,12 @@ struct AppReducer {
         @CasePathable
         @dynamicMemberLookup
         enum ContentMode: Equatable {
+            case notDefined
             case login(Login.State)
             case serversList(ServersList.State)
         }
 
-        var contentMode: ContentMode = .login(Login.State())
+        var contentMode: ContentMode = .notDefined
     }
 
     enum Action: BindableAction, Equatable {
