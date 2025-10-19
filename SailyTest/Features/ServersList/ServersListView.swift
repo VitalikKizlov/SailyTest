@@ -14,37 +14,34 @@ struct ServersListView: View {
     @Bindable var store: StoreOf<ServersList>
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                header()
-
-                ZStack {
-                    switch store.loadingState {
-                    case .idle:
-                        EmptyView()
-                    case .loading:
-                        LoadingView()
-                            .transition(.opacity)
-                    case .loaded:
+        VStack {
+            switch store.loadingState {
+            case .idle, .loading:
+                LoadingView()
+                    .transition(.opacity)
+            case .loaded:
+                NavigationStack {
+                    VStack(spacing: 0) {
+                        header()
                         serversList()
-                            .transition(.opacity)
                     }
+                    .navigationBarTitle("Testio.", displayMode: .inline)
+                    .navigationBarItems(leading: sortButton(), trailing: logoutButton())
+                    .toolbarBackground(Color.white, for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
+                    .confirmationDialog(
+                        $store.scope(
+                            state: \.confirmationDialog,
+                            action: \.confirmationDialog
+                        )
+                    )
                 }
-                .animation(.easeInOut, value: store.loadingState)
+                .transition(.opacity)
             }
-            .navigationBarTitle("Testio.", displayMode: .inline)
-            .navigationBarItems(leading: sortButton(), trailing: logoutButton())
-            .toolbarBackground(Color.white, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .onAppear {
-                store.send(.onAppear)
-            }
-            .confirmationDialog(
-                $store.scope(
-                    state: \.confirmationDialog,
-                    action: \.confirmationDialog
-                )
-            )
+        }
+        .animation(.easeInOut, value: store.loadingState)
+        .onAppear {
+            store.send(.onAppear)
         }
     }
 }
