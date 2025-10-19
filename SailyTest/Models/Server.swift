@@ -8,10 +8,44 @@
 import Foundation
 
 struct Server: Codable, Hashable, Identifiable {
-    var id: String { name }
-
+    let id: UUID
     let name: String
     let distance: Int
+    
+    init(name: String, distance: Int) {
+        self.id = UUID()
+        self.name = name
+        self.distance = distance
+    }
+    
+    // CodingKeys to exclude id from JSON decoding
+    private enum CodingKeys: String, CodingKey {
+        case name, distance
+    }
+    
+    // Custom decoder to handle missing id field
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = UUID()
+        self.name = try container.decode(String.self, forKey: .name)
+        self.distance = try container.decode(Int.self, forKey: .distance)
+    }
+    
+    // Custom encoder to exclude id from JSON encoding
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(distance, forKey: .distance)
+    }
+    
+    // Custom Hashable implementation based on name for deduplication
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+    }
+    
+    static func == (lhs: Server, rhs: Server) -> Bool {
+        lhs.name == rhs.name
+    }
 }
 
 extension Server {

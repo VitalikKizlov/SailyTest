@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ComposableArchitecture
 
 protocol RequestProviding {
     func urlRequest() -> URLRequest
@@ -17,6 +18,15 @@ enum Endpoint: RequestProviding {
 
     private static let scheme = "https"
     private static let baseURLString = "playground.nordsec.com"
+    
+    // MARK: - Dependency Injection
+    @Dependency(\.keychainClient) private static var keychainClient
+
+    // MARK: - Configuration
+    private static let defaultHeaders: [String: String] = [
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    ]
 
     private enum HTTPMethod {
         case get
@@ -67,15 +77,49 @@ enum Endpoint: RequestProviding {
         guard let url = components.url else {
             preconditionFailure("Can't create URL")
         }
+        
         var request = URLRequest(url: url)
         request.httpMethod = method.value
-        let token = "" //KeychainWrapper.shared.getValueFor(service: .token)
-        if !token.isEmpty {
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.addValue("application/json", forHTTPHeaderField: "Accept")
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        // Add default headers
+        for (key, value) in Endpoint.defaultHeaders {
+            request.addValue(value, forHTTPHeaderField: key)
         }
-        print("Request ----", request)
+        
+        // Add authorization header for protected endpoints
+        if requiresAuth {
+            if let token = getCurrentToken() {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+        }
+        
+        #if DEBUG
+        print("🌐 API Request: \(method.value) \(url)")
+        if let authHeader = request.value(forHTTPHeaderField: "Authorization") {
+            print("🔐 Authorization: \(authHeader.prefix(20))...")
+        }
+        #endif
+        
         return request
+    }
+    
+    // MARK: - Helper Properties
+    
+    private var requiresAuth: Bool {
+        switch self {
+        case .getToken:
+            return false // Login endpoint doesn't need auth
+        case .getServerList:
+            return true // Servers endpoint needs auth
+        }
+    }
+    
+    private func getCurrentToken() -> String? {
+        do {
+            let token = try Self.keychainClient.getToken()
+            return token.token
+        } catch {
+            return nil
+        }
     }
 }
