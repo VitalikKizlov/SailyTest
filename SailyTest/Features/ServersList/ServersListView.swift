@@ -18,13 +18,19 @@ struct ServersListView: View {
             VStack(spacing: 0) {
                 header()
 
-                // TODO: - add zstack with animation
-                // add separate loading view with image background and spinner
-                if store.loadingState == .loading {
-                    LoadingView()
-                } else {
-                    serversList()
+                ZStack {
+                    switch store.loadingState {
+                    case .idle:
+                        EmptyView()
+                    case .loading:
+                        LoadingView()
+                            .transition(.opacity)
+                    case .loaded:
+                        serversList()
+                            .transition(.opacity)
+                    }
                 }
+                .animation(.easeInOut, value: store.loadingState)
             }
             .navigationBarTitle("Testio.", displayMode: .inline)
             .navigationBarItems(leading: sortButton(), trailing: logoutButton())
